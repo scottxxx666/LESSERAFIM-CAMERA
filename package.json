@@ -1,0 +1,29 @@
+{
+  "name": "lesserafim-camera",
+  "version": "1.0.0",
+  "description": "360° Photo Hunt Game with Phaser 3 - A mobile web game where players use their device's camera and gyroscope to hunt for virtual objects",
+  "main": "index.js",
+  "scripts": {
+    "start": "serve -s .",
+    "dev": "serve -s . --port 3000",
+    "build": "echo 'No build process yet'",
+    "test": "echo 'No tests yet'"
+  },
+  "keywords": [
+    "phaser3",
+    "game",
+    "mobile",
+    "camera",
+    "gyroscope",
+    "360",
+    "photo-hunt"
+  ],
+  "author": "scottxxx666",
+  "license": "BSD-2-Clause",
+  "dependencies": {
+    "phaser": "^3.88.2"
+  },
+  "devDependencies": {
+    "serve": "^14.2.3"
+  }
+}
