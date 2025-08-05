@@ -1,5 +1,6 @@
 import { AUTO, Game } from 'phaser';
 import MainScene from './scenes/MainScene.js';
+import GameScene from './scenes/GameScene.js';
 
 // Game configuration
 const config = {
@@ -7,8 +8,8 @@ const config = {
     width: 800,
     height: 600,
     parent: 'game-container',
-    backgroundColor: '#1a1a2e',
-    scene: [MainScene],
+    transparent: true,
+    scene: [MainScene, GameScene],
     scale: {
         mode: Phaser.Scale.FIT,
         autoCenter: Phaser.Scale.CENTER_BOTH,

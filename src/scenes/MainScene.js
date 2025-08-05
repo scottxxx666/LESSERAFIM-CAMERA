@@ -11,6 +11,9 @@ export default class MainScene extends Scene {
     }
 
     create() {
+        // Add solid background for menu scene
+        this.cameras.main.setBackgroundColor('#1a1a2e');
+        
         // Add welcome text
         this.add.text(400, 300, 'Welcome to LESSERAFIM Camera Game', {
             fontFamily: 'Arial',
@@ -37,11 +40,7 @@ export default class MainScene extends Scene {
         }).setOrigin(0.5).setInteractive();
 
         startButton.on('pointerdown', () => {
-            this.add.text(400, 520, 'Game will be developed here!', {
-                fontFamily: 'Arial',
-                fontSize: '18px',
-                color: '#ffff00'
-            }).setOrigin(0.5);
+            this.scene.start('GameScene');
         });
 
         // Add some visual feedback on hover
