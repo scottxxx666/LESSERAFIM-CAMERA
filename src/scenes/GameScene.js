@@ -52,7 +52,7 @@ export default class GameScene extends Scene {
             console.log('Camera feed initialized successfully');
 
             // Show camera is ready
-            this.add.text(400, 100, 'Camera Ready!', {
+            this.add.text(187, 100, 'Camera Ready!', {
                 fontFamily: 'Arial',
                 fontSize: '24px',
                 color: '#00ff00',
@@ -78,7 +78,7 @@ export default class GameScene extends Scene {
         }
 
         // Show error message
-        this.add.text(400, 300, errorMessage, {
+        this.add.text(187, 333, errorMessage, {
             fontFamily: 'Arial',
             fontSize: '24px',
             color: '#ff0000',
@@ -88,7 +88,7 @@ export default class GameScene extends Scene {
         }).setOrigin(0.5);
 
         // Add retry button
-        const retryButton = this.add.text(400, 360, 'Retry Camera', {
+        const retryButton = this.add.text(187, 393, 'Retry Camera', {
             fontFamily: 'Arial',
             fontSize: '18px',
             color: '#ffffff',
@@ -103,7 +103,7 @@ export default class GameScene extends Scene {
 
     setupUI() {
         // Add game title
-        this.add.text(400, 50, 'LESSERAFIM Photo Hunt', {
+        this.add.text(187, 50, 'LESSERAFIM Photo Hunt', {
             fontFamily: 'Arial',
             fontSize: '28px',
             color: '#ffffff',
@@ -112,7 +112,7 @@ export default class GameScene extends Scene {
         }).setOrigin(0.5);
 
         // Add temporary capture button
-        const captureButton = this.add.text(400, 550, 'CAPTURE', {
+        const captureButton = this.add.text(187, 600, 'CAPTURE', {
             fontFamily: 'Arial',
             fontSize: '24px',
             color: '#ffffff',
@@ -129,7 +129,7 @@ export default class GameScene extends Scene {
 
     capturePhoto() {
         // Temporary capture feedback
-        this.add.text(400, 400, 'Photo Captured!', {
+        this.add.text(187, 450, 'Photo Captured!', {
             fontFamily: 'Arial',
             fontSize: '20px',
             color: '#ffff00',
@@ -138,7 +138,7 @@ export default class GameScene extends Scene {
         }).setOrigin(0.5);
 
         // Flash effect
-        const flash = this.add.rectangle(400, 300, 800, 600, 0xffffff, 0.8);
+        const flash = this.add.rectangle(187, 333, 375, 667, 0xffffff, 0.8);
         this.tweens.add({
             targets: flash,
             alpha: 0,

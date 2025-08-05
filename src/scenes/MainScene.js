@@ -15,23 +15,23 @@ export default class MainScene extends Scene {
         this.cameras.main.setBackgroundColor('#1a1a2e');
         
         // Add welcome text
-        this.add.text(400, 300, 'Welcome to LESSERAFIM Camera Game', {
+        this.add.text(187, 300, 'Welcome to LESSERAFIM Camera Game', {
             fontFamily: 'Arial',
-            fontSize: '32px',
+            fontSize: '24px',
             color: '#ffffff',
             align: 'center'
         }).setOrigin(0.5);
 
         // Add instruction text
-        this.add.text(400, 360, 'This is a simple Phaser 3 starter scene', {
+        this.add.text(187, 360, 'Tap camera to hunt LESSERAFIM members!', {
             fontFamily: 'Arial',
-            fontSize: '18px',
+            fontSize: '16px',
             color: '#cccccc',
             align: 'center'
         }).setOrigin(0.5);
 
         // Add a simple interactive element
-        const startButton = this.add.text(400, 450, 'Click to Start', {
+        const startButton = this.add.text(187, 450, 'START HUNT', {
             fontFamily: 'Arial',
             fontSize: '24px',
             color: '#00ff00',

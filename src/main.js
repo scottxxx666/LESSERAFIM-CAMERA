@@ -5,8 +5,8 @@ import GameScene from './scenes/GameScene.js';
 // Game configuration
 const config = {
     type: AUTO,
-    width: 800,
-    height: 600,
+    width: 375,
+    height: 667,
     parent: 'game-container',
     transparent: true,
     scene: [MainScene, GameScene],
@@ -15,11 +15,11 @@ const config = {
         autoCenter: Phaser.Scale.CENTER_BOTH,
         min: {
             width: 320,
-            height: 240
+            height: 480
         },
         max: {
-            width: 1600,
-            height: 1200
+            width: 414,
+            height: 896
         }
     },
     physics: {
