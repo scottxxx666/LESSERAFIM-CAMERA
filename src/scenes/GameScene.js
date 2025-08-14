@@ -5,6 +5,11 @@ export default class GameScene extends Scene {
         super({ key: 'GameScene' });
         this.videoElement = null;
         this.stream = null;
+        this.sprites = [];
+    }
+
+    preload() {
+        this.load.image('angel', 'assets/angel.png');
     }
 
     async create() {
@@ -12,6 +17,9 @@ export default class GameScene extends Scene {
 
         // Set up camera feed
         await this.setupCamera();
+
+        // Add sprite objects for photo hunting
+        this.setupSprites();
 
         // Add basic UI elements
         this.setupUI();
@@ -104,6 +112,26 @@ export default class GameScene extends Scene {
         });
     }
 
+    setupSprites() {
+        const centerX = this.cameras.main.width / 2;
+        const centerY = this.cameras.main.height / 2;
+
+        // Create angel sprite at center of screen
+        const angelSprite = this.add.image(centerX, centerY, 'angel');
+        angelSprite.setScale(0.5); // Scale down if needed
+        this.sprites.push(angelSprite);
+
+        // Add more sprites at different positions
+        const angel2 = this.add.image(centerX - 100, centerY - 100, 'angel');
+        angel2.setScale(0.3);
+        this.sprites.push(angel2);
+
+        const angel3 = this.add.image(centerX + 80, centerY + 120, 'angel');
+        angel3.setScale(0.4);
+        this.sprites.push(angel3);
+
+    }
+
     setupUI() {
         const centerX = this.cameras.main.width / 2;
         const screenHeight = this.cameras.main.height;
@@ -137,11 +165,27 @@ export default class GameScene extends Scene {
         const centerX = this.cameras.main.width / 2;
         const centerY = this.cameras.main.height / 2;
 
-        // Temporary capture feedback
-        this.add.text(centerX, centerY - 50, 'Photo Captured!', {
+        // Check which sprites are visible in camera view
+        const visibleSprites = this.sprites.filter(sprite => {
+            const bounds = sprite.getBounds();
+            const camera = this.cameras.main;
+            
+            // Check if sprite is within camera bounds
+            return bounds.x < camera.width && 
+                   bounds.x + bounds.width > 0 && 
+                   bounds.y < camera.height && 
+                   bounds.y + bounds.height > 0;
+        });
+
+        // Show capture feedback with count
+        const captureText = visibleSprites.length > 0 
+            ? `Captured ${visibleSprites.length} angel(s)!` 
+            : 'No angels in frame!';
+
+        this.add.text(centerX, centerY - 50, captureText, {
             fontFamily: 'Arial',
             fontSize: '20px',
-            color: '#ffff00',
+            color: visibleSprites.length > 0 ? '#00ff00' : '#ff0000',
             backgroundColor: 'rgba(0,0,0,0.7)',
             padding: { x: 10, y: 5 }
         }).setOrigin(0.5);
@@ -155,7 +199,7 @@ export default class GameScene extends Scene {
             onComplete: () => flash.destroy()
         });
 
-        console.log('Photo capture simulated');
+        console.log(`Photo captured with ${visibleSprites.length} sprites visible`);
     }
 
     destroy() {
