@@ -11,11 +11,13 @@ export default class MainScene extends Scene {
     }
 
     create() {
-        // Add solid background for menu scene
         this.cameras.main.setBackgroundColor('#1a1a2e');
         
+        const centerX = this.cameras.main.width / 2;
+        const centerY = this.cameras.main.height / 2;
+        
         // Add welcome text
-        this.add.text(187, 300, 'Welcome to LESSERAFIM Camera Game', {
+        this.add.text(centerX, centerY - 100, 'Welcome to LESSERAFIM Camera Game', {
             fontFamily: 'Arial',
             fontSize: '24px',
             color: '#ffffff',
@@ -23,7 +25,7 @@ export default class MainScene extends Scene {
         }).setOrigin(0.5);
 
         // Add instruction text
-        this.add.text(187, 360, 'Tap camera to hunt LESSERAFIM members!', {
+        this.add.text(centerX, centerY - 40, 'Tap camera to hunt LESSERAFIM members!', {
             fontFamily: 'Arial',
             fontSize: '16px',
             color: '#cccccc',
@@ -31,7 +33,7 @@ export default class MainScene extends Scene {
         }).setOrigin(0.5);
 
         // Add a simple interactive element
-        const startButton = this.add.text(187, 450, 'START HUNT', {
+        const startButton = this.add.text(centerX, centerY + 50, 'START HUNT', {
             fontFamily: 'Arial',
             fontSize: '24px',
             color: '#00ff00',

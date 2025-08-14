@@ -52,7 +52,7 @@ export default class GameScene extends Scene {
             console.log('Camera feed initialized successfully');
 
             // Show camera is ready
-            this.add.text(187, 100, 'Camera Ready!', {
+            this.add.text(this.cameras.main.width / 2, 100, 'Camera Ready!', {
                 fontFamily: 'Arial',
                 fontSize: '24px',
                 color: '#00ff00',
@@ -77,8 +77,11 @@ export default class GameScene extends Scene {
             errorMessage = 'Camera not supported';
         }
 
+        const centerX = this.cameras.main.width / 2;
+        const centerY = this.cameras.main.height / 2;
+
         // Show error message
-        this.add.text(187, 333, errorMessage, {
+        this.add.text(centerX, centerY, errorMessage, {
             fontFamily: 'Arial',
             fontSize: '24px',
             color: '#ff0000',
@@ -88,7 +91,7 @@ export default class GameScene extends Scene {
         }).setOrigin(0.5);
 
         // Add retry button
-        const retryButton = this.add.text(187, 393, 'Retry Camera', {
+        const retryButton = this.add.text(centerX, centerY + 60, 'Retry Camera', {
             fontFamily: 'Arial',
             fontSize: '18px',
             color: '#ffffff',
@@ -102,8 +105,11 @@ export default class GameScene extends Scene {
     }
 
     setupUI() {
+        const centerX = this.cameras.main.width / 2;
+        const screenHeight = this.cameras.main.height;
+
         // Add game title
-        this.add.text(187, 50, 'LESSERAFIM Photo Hunt', {
+        this.add.text(centerX, 50, 'LESSERAFIM Photo Hunt', {
             fontFamily: 'Arial',
             fontSize: '28px',
             color: '#ffffff',
@@ -112,7 +118,7 @@ export default class GameScene extends Scene {
         }).setOrigin(0.5);
 
         // Add temporary capture button
-        const captureButton = this.add.text(187, 600, 'CAPTURE', {
+        const captureButton = this.add.text(centerX, screenHeight - 180, 'CAPTURE', {
             fontFamily: 'Arial',
             fontSize: '24px',
             color: '#ffffff',
@@ -128,8 +134,11 @@ export default class GameScene extends Scene {
     }
 
     capturePhoto() {
+        const centerX = this.cameras.main.width / 2;
+        const centerY = this.cameras.main.height / 2;
+
         // Temporary capture feedback
-        this.add.text(187, 450, 'Photo Captured!', {
+        this.add.text(centerX, centerY - 50, 'Photo Captured!', {
             fontFamily: 'Arial',
             fontSize: '20px',
             color: '#ffff00',
@@ -138,7 +147,7 @@ export default class GameScene extends Scene {
         }).setOrigin(0.5);
 
         // Flash effect
-        const flash = this.add.rectangle(187, 333, 375, 667, 0xffffff, 0.8);
+        const flash = this.add.rectangle(centerX, centerY, this.cameras.main.width, this.cameras.main.height, 0xffffff, 0.8);
         this.tweens.add({
             targets: flash,
             alpha: 0,

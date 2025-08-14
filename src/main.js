@@ -5,22 +5,13 @@ import GameScene from './scenes/GameScene.js';
 // Game configuration
 const config = {
     type: AUTO,
-    width: 375,
-    height: 667,
+    width: window.innerWidth,
+    height: window.innerHeight,
     parent: 'game-container',
     transparent: true,
     scene: [MainScene, GameScene],
     scale: {
-        mode: Phaser.Scale.FIT,
-        autoCenter: Phaser.Scale.CENTER_BOTH,
-        min: {
-            width: 320,
-            height: 480
-        },
-        max: {
-            width: 414,
-            height: 896
-        }
+        mode: Phaser.Scale.RESIZE
     },
     physics: {
         default: 'arcade',
