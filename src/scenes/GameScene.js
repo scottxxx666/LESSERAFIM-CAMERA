@@ -1,12 +1,16 @@
 import { Scene } from 'phaser';
+import OrientationManager from '../managers/OrientationManager.js';
+import AngelDisplaySystem from '../systems/AngelDisplaySystem.js';
 
 export default class GameScene extends Scene {
     constructor() {
         super({ key: 'GameScene' });
         this.videoElement = null;
         this.stream = null;
-        this.sprites = [];
-        this.currentOrientation = 0;
+        
+        // Motion-based angel display system
+        this.orientationManager = null;
+        this.angelDisplaySystem = null;
         this.orientationPermissionGranted = false;
     }
 
@@ -15,19 +19,19 @@ export default class GameScene extends Scene {
     }
 
     async create() {
-        console.log('GameScene created - Setting up camera feed...');
+        console.log('GameScene created - Setting up camera feed and motion-based angel display...');
 
-        // Set up 360° world bounds (10 pixels per degree)
-        this.physics.world.setBounds(0, 0, 3600, this.cameras.main.height);
-        
         // Set up camera feed
         await this.setupCamera();
 
-        // Initialize gyroscope
-        await this.setupGyroscope();
+        // Request orientation permission immediately on scene start
+        await this.requestOrientationPermissionImmediately();
 
-        // Add sprite objects for photo hunting
-        this.setupSprites();
+        // Initialize AngelDisplaySystem for continuous angel display
+        this.initializeAngelDisplaySystem();        console.log('123')
+
+        // Connect OrientationManager to AngelDisplaySystem for real-time updates
+        this.connectOrientationToAngelDisplay();
 
         // Add basic UI elements
         this.setupUI();
@@ -120,122 +124,117 @@ export default class GameScene extends Scene {
         });
     }
 
-    async setupGyroscope() {
+    /**
+     * Request orientation permission immediately on scene start
+     */
+    async requestOrientationPermissionImmediately() {
+        console.log('GameScene: Requesting orientation permission immediately...');
+        
         try {
-            // Check if device orientation is supported
-            if (!window.DeviceOrientationEvent) {
-                throw new Error('DeviceOrientationEvent not supported');
-            }
-
-            // Check if iOS permission is needed
-            if (typeof DeviceOrientationEvent.requestPermission === 'function') {
-                // iOS 13+ requires permission
-                this.showPermissionButton();
+            // Initialize OrientationManager
+            this.orientationManager = new OrientationManager();
+            
+            // Request permission immediately
+            const permissionGranted = await this.orientationManager.initialize();
+            this.orientationPermissionGranted = permissionGranted;
+            
+            if (permissionGranted) {
+                console.log('GameScene: Orientation permission granted');
             } else {
-                // Android or older iOS - start directly
-                this.startOrientationTracking();
+                console.warn('GameScene: Orientation permission denied');
+                this.showPermissionError();
             }
-
+            
         } catch (error) {
-            console.error('Gyroscope setup failed:', error);
-            this.add.text(this.cameras.main.width / 2, 150, 'Gyroscope not available', {
-                fontFamily: 'Arial',
-                fontSize: '18px',
-                color: '#ff9900',
-                backgroundColor: 'rgba(0,0,0,0.5)',
-                padding: { x: 10, y: 5 }
-            }).setOrigin(0.5);
+            console.error('GameScene: Orientation permission request failed:', error);
+            this.showPermissionError();
         }
     }
 
-    showPermissionButton() {
-        const centerX = this.cameras.main.width / 2;
+    /**
+     * Initialize AngelDisplaySystem for continuous angel display
+     */
+    initializeAngelDisplaySystem() {
+        console.log('GameScene: Initializing AngelDisplaySystem...');
         
-        const permissionText = this.add.text(centerX, 150, 'Tap to enable device rotation', {
+        // Create AngelDisplaySystem instance
+        this.angelDisplaySystem = new AngelDisplaySystem(this);
+        
+        // Initialize the display with single current angel
+        this.angelDisplaySystem.initializeDisplay();
+        
+        console.log('GameScene: AngelDisplaySystem initialized successfully');
+    }
+
+    /**
+     * Connect OrientationManager to AngelDisplaySystem for real-time updates
+     */
+    connectOrientationToAngelDisplay() {
+        if (!this.orientationManager || !this.angelDisplaySystem) {
+            console.warn('GameScene: Cannot connect orientation to angel display - missing components');
+            return;
+        }
+        
+        console.log('GameScene: Connecting OrientationManager to AngelDisplaySystem...');
+        
+        // Register callback for orientation changes
+        this.orientationManager.onOrientationChange((orientationData) => {
+            // Convert orientation data to format expected by AngelDisplaySystem
+            const orientation = {
+                alpha: orientationData.current,
+                beta: 0, // Will be enhanced in future tasks
+                gamma: 0 // Will be enhanced in future tasks
+            };
+            
+            // Update angel display with real-time orientation data
+            this.angelDisplaySystem.updateCurrentAngel(orientation);
+            
+            // Debug log occasionally
+            if (Math.random() < 0.01) { // 1% chance to log
+                console.log('GameScene: Orientation update sent to AngelDisplaySystem:', orientationData.current);
+            }
+        });
+        
+        console.log('GameScene: OrientationManager connected to AngelDisplaySystem');
+    }
+
+    /**
+     * Show permission error message with retry option
+     */
+    showPermissionError() {
+        const centerX = this.cameras.main.width / 2;
+        const centerY = this.cameras.main.height / 2;
+
+        const errorText = this.add.text(centerX, centerY - 50, 'Device orientation permission required\nfor angel display', {
             fontFamily: 'Arial',
             fontSize: '18px',
             color: '#ffffff',
-            backgroundColor: 'rgba(0,0,0,0.7)',
-            padding: { x: 15, y: 10 }
+            backgroundColor: 'rgba(255,0,0,0.8)',
+            padding: { x: 15, y: 10 },
+            align: 'center'
         }).setOrigin(0.5);
 
-        const enableButton = this.add.text(centerX, 200, 'ENABLE ROTATION', {
+        const retryButton = this.add.text(centerX, centerY + 20, 'RETRY PERMISSION', {
             fontFamily: 'Arial',
-            fontSize: '20px',
+            fontSize: '16px',
             color: '#ffffff',
-            backgroundColor: '#00ff00',
-            padding: { x: 20, y: 15 }
+            backgroundColor: '#ff4081',
+            padding: { x: 15, y: 8 }
         }).setOrigin(0.5).setInteractive({ useHandCursor: true });
 
-        enableButton.on('pointerdown', async () => {
-            try {
-                const permission = await DeviceOrientationEvent.requestPermission();
-                if (permission === 'granted') {
-                    permissionText.destroy();
-                    enableButton.destroy();
-                    this.startOrientationTracking();
-                } else {
-                    permissionText.setText('Permission denied - rotation disabled');
-                    enableButton.destroy();
-                }
-            } catch (error) {
-                console.error('Permission request failed:', error);
-                permissionText.setText('Permission request failed');
-                enableButton.destroy();
+        retryButton.on('pointerdown', async () => {
+            errorText.destroy();
+            retryButton.destroy();
+            await this.requestOrientationPermissionImmediately();
+            
+            if (this.orientationPermissionGranted) {
+                this.initializeAngelDisplaySystem();
+                this.connectOrientationToAngelDisplay();
             }
         });
     }
 
-    startOrientationTracking() {
-        window.addEventListener('deviceorientation', (event) => {
-            // Use alpha (compass heading) for 360° rotation
-            let orientation = event.alpha;
-            if (orientation === null) return;
-            
-            // Convert to 0-360 range
-            if (orientation < 0) orientation += 360;
-            
-            this.currentOrientation = orientation;
-            
-            // Map orientation (0-360°) to world X position (0-3600px)
-            const worldX = (orientation / 360) * 3600;
-            
-            // Move camera smoothly
-            this.cameras.main.scrollX = worldX - (this.cameras.main.width / 2);
-            
-            // Handle wraparound at edges
-            if (this.cameras.main.scrollX < 0) {
-                this.cameras.main.scrollX += 3600;
-            } else if (this.cameras.main.scrollX > 3600 - this.cameras.main.width) {
-                this.cameras.main.scrollX -= 3600;
-            }
-        });
 
-        this.orientationPermissionGranted = true;
-        console.log('Device orientation tracking started');
-    }
-
-    setupSprites() {
-        const centerY = this.cameras.main.height / 2;
-
-        // Place sprites at fixed world positions based on angles
-        // Angel 1 at 0° (world X: 0)
-        const angel1 = this.add.image(0, centerY, 'angel');
-        angel1.setScale(0.5);
-        this.sprites.push(angel1);
-
-        // Angel 2 at 120° (world X: 1200px)
-        const angel2 = this.add.image(1200, centerY - 100, 'angel');
-        angel2.setScale(0.4);
-        this.sprites.push(angel2);
-
-        // Angel 3 at 240° (world X: 2400px)  
-        const angel3 = this.add.image(2400, centerY + 80, 'angel');
-        angel3.setScale(0.3);
-        this.sprites.push(angel3);
-
-        console.log('Sprites positioned in 360° world space');
-    }
 
     setupUI() {
         const centerX = this.cameras.main.width / 2;
@@ -270,36 +269,40 @@ export default class GameScene extends Scene {
         const centerX = this.cameras.main.width / 2;
         const centerY = this.cameras.main.height / 2;
 
-        // Check which sprites are visible in camera world view
-        const visibleSprites = this.sprites.filter(sprite => {
-            const camera = this.cameras.main;
-            const worldView = camera.worldView;
+        // Get current angel state from AngelDisplaySystem
+        let captureInfo = '';
+        let angelCaptured = false;
+        
+        if (this.angelDisplaySystem) {
+            const angelState = this.angelDisplaySystem.getCurrentAngelState();
             
-            // Check if sprite is within current camera world viewport
-            const spriteX = sprite.x;
-            const spriteY = sprite.y;
-            const spriteWidth = sprite.displayWidth;
-            const spriteHeight = sprite.displayHeight;
-            
-            // Check if sprite overlaps with camera's world view rectangle
-            return spriteX + spriteWidth/2 >= worldView.x && 
-                   spriteX - spriteWidth/2 <= worldView.x + worldView.width && 
-                   spriteY + spriteHeight/2 >= worldView.y && 
-                   spriteY - spriteHeight/2 <= worldView.y + worldView.height;
-        });
+            if (angelState.isVisible) {
+                captureInfo = `Angel captured at H:${Math.round(angelState.horizontalAngle)}° V:${Math.round(angelState.verticalAngle)}°`;
+                angelCaptured = true;
+            } else {
+                captureInfo = 'No angel visible in current view';
+            }
+        } else {
+            captureInfo = 'Angel display system not initialized';
+        }
 
-        // Show capture feedback with count and current orientation
-        const captureText = visibleSprites.length > 0 
-            ? `Captured ${visibleSprites.length} angel(s) at ${Math.round(this.currentOrientation)}°!` 
-            : `No angels in frame (${Math.round(this.currentOrientation)}°)`;
-
-        this.add.text(centerX, centerY - 50, captureText, {
+        // Show capture feedback
+        const feedbackText = this.add.text(centerX, centerY - 50, captureInfo, {
             fontFamily: 'Arial',
-            fontSize: '20px',
-            color: visibleSprites.length > 0 ? '#00ff00' : '#ff0000',
-            backgroundColor: 'rgba(0,0,0,0.7)',
-            padding: { x: 10, y: 5 }
+            fontSize: '16px',
+            color: angelCaptured ? '#00ff00' : '#ff0000',
+            backgroundColor: 'rgba(0,0,0,0.8)',
+            padding: { x: 10, y: 5 },
+            align: 'center',
+            wordWrap: { width: this.cameras.main.width - 40 }
         }).setOrigin(0.5);
+
+        // Auto-remove feedback after 3 seconds
+        this.time.delayedCall(3000, () => {
+            if (feedbackText && feedbackText.scene) {
+                feedbackText.destroy();
+            }
+        });
 
         // Flash effect
         const flash = this.add.rectangle(centerX, centerY, this.cameras.main.width, this.cameras.main.height, 0xffffff, 0.8);
@@ -310,7 +313,7 @@ export default class GameScene extends Scene {
             onComplete: () => flash.destroy()
         });
 
-        console.log(`Photo captured with ${visibleSprites.length} sprites visible at ${this.currentOrientation}°`);
+        console.log(`Photo captured: ${captureInfo}`);
     }
 
     destroy() {
@@ -321,6 +324,15 @@ export default class GameScene extends Scene {
         if (this.videoElement) {
             this.videoElement.remove();
         }
+        
+        // Clean up motion-based angel display systems
+        if (this.orientationManager) {
+            this.orientationManager.destroy();
+        }
+        if (this.angelDisplaySystem) {
+            this.angelDisplaySystem.destroy();
+        }
+        
         super.destroy();
     }
 }

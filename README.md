@@ -26,20 +26,22 @@ A mobile web game where players use their device's camera and gyroscope to hunt 
 
 ## Getting Started
 
+**Note: This project uses Yarn as the preferred package manager.**
+
 1. Clone the repository
 2. Install dependencies:
    ```bash
-   npm install
-   # or
    yarn install
    ```
 3. Start development server:
    ```bash
-   npm start
-   # or
    yarn start
    ```
-4. Open in mobile browser over HTTPS
+4. Run tests:
+   ```bash
+   yarn test
+   ```
+5. Open in mobile browser over HTTPS
 
 ## Game Mechanics
 

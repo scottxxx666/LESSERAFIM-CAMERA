@@ -8,7 +8,8 @@
     "build": "vite build",
     "preview": "vite preview",
     "start": "vite",
-    "test": "echo 'No tests yet'"
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "keywords": [
     "phaser3",
@@ -26,7 +27,9 @@
   },
   "devDependencies": {
     "@vitejs/plugin-basic-ssl": "^2.1.0",
+    "jsdom": "^27.0.0",
     "serve": "^14.2.3",
-    "vite": "^7.0.6"
+    "vite": "^7.0.6",
+    "vitest": "^3.2.4"
   }
 }
