@@ -8,6 +8,12 @@ export default class GameScene extends Scene {
         this.sprites = [];
         this.currentOrientation = 0;
         this.orientationPermissionGranted = false;
+
+        // Track initial and current angles
+        this.initialOrientation = { alpha: null, beta: null, gamma: null };
+        this.currentAngles = { alpha: 0, beta: 0, gamma: 0 };
+        this.angleChanges = { horizontal: 0, vertical: 0 };
+        this.orientationDisplay = null;
     }
 
     preload() {
@@ -19,7 +25,7 @@ export default class GameScene extends Scene {
 
         // Set up 360° world bounds (10 pixels per degree)
         this.physics.world.setBounds(0, 0, 3600, this.cameras.main.height);
-        
+
         // Set up camera feed
         await this.setupCamera();
 
@@ -43,7 +49,7 @@ export default class GameScene extends Scene {
             this.videoElement.style.width = '100%';
             this.videoElement.style.height = '100%';
             this.videoElement.style.objectFit = 'cover';
-            this.videoElement.style.zIndex = '-1'; // Behind Phaser canvas
+            this.videoElement.style.zIndex = '-999'; // Far behind everything
             this.videoElement.autoplay = true;
             this.videoElement.muted = true;
             this.videoElement.playsInline = true; // Important for iOS
@@ -150,7 +156,7 @@ export default class GameScene extends Scene {
 
     showPermissionButton() {
         const centerX = this.cameras.main.width / 2;
-        
+
         const permissionText = this.add.text(centerX, 150, 'Tap to enable device rotation', {
             fontFamily: 'Arial',
             fontSize: '18px',
@@ -191,24 +197,51 @@ export default class GameScene extends Scene {
             // Use alpha (compass heading) for 360° rotation
             let orientation = event.alpha;
             if (orientation === null) return;
-            
+
+            // Store initial orientation as reference point
+            if (this.initialOrientation.alpha === null) {
+                this.initialOrientation.alpha = event.alpha || 0;
+                this.initialOrientation.beta = event.beta || 0;
+                this.initialOrientation.gamma = event.gamma || 0;
+            }
+
+            // Update current angles
+            this.currentAngles.alpha = event.alpha || 0;
+            this.currentAngles.beta = event.beta || 0;
+            this.currentAngles.gamma = event.gamma || 0;
+
+            // Calculate changes from initial position
+            let horizontalChange = this.currentAngles.alpha - this.initialOrientation.alpha;
+            let verticalChange = this.currentAngles.beta - this.initialOrientation.beta;
+
+            // Handle 360° wraparound for horizontal rotation
+            if (horizontalChange > 180) horizontalChange -= 360;
+            if (horizontalChange < -180) horizontalChange += 360;
+
+            // Store angle changes
+            this.angleChanges.horizontal = horizontalChange;
+            this.angleChanges.vertical = verticalChange;
+
+            // Update orientation display
+            this.updateOrientationDisplay();
+
             // Convert to 0-360 range
             if (orientation < 0) orientation += 360;
-            
+
             this.currentOrientation = orientation;
-            
+
             // Map orientation (0-360°) to world X position (0-3600px)
             const worldX = (orientation / 360) * 3600;
-            
+
             // Move camera smoothly
-            this.cameras.main.scrollX = worldX - (this.cameras.main.width / 2);
-            
-            // Handle wraparound at edges
-            if (this.cameras.main.scrollX < 0) {
-                this.cameras.main.scrollX += 3600;
-            } else if (this.cameras.main.scrollX > 3600 - this.cameras.main.width) {
-                this.cameras.main.scrollX -= 3600;
-            }
+            // this.cameras.main.scrollX = worldX - (this.cameras.main.width / 2);
+            //
+            // // Handle wraparound at edges
+            // if (this.cameras.main.scrollX < 0) {
+            //     this.cameras.main.scrollX += 3600;
+            // } else if (this.cameras.main.scrollX > 3600 - this.cameras.main.width) {
+            //     this.cameras.main.scrollX -= 3600;
+            // }
         });
 
         this.orientationPermissionGranted = true;
@@ -229,7 +262,7 @@ export default class GameScene extends Scene {
         angel2.setScale(0.4);
         this.sprites.push(angel2);
 
-        // Angel 3 at 240° (world X: 2400px)  
+        // Angel 3 at 240° (world X: 2400px)
         const angel3 = this.add.image(2400, centerY + 80, 'angel');
         angel3.setScale(0.3);
         this.sprites.push(angel3);
@@ -250,6 +283,15 @@ export default class GameScene extends Scene {
             padding: { x: 15, y: 8 }
         }).setOrigin(0.5);
 
+        // Add orientation display - positioned below title with higher z-index
+        this.orientationDisplay = this.add.text(20, 90, this.getOrientationText(), {
+            fontFamily: 'Arial',
+            fontSize: '34px',
+            color: '#00ff00',
+            backgroundColor: 'rgba(0,0,0,0.8)',
+            padding: { x: 8, y: 4 }
+        }).setOrigin(0, 0).setDepth(1000);
+
         // Add temporary capture button
         const captureButton = this.add.text(centerX, screenHeight - 180, 'CAPTURE', {
             fontFamily: 'Arial',
@@ -266,6 +308,13 @@ export default class GameScene extends Scene {
         // Game starts directly - no menu to return to
     }
 
+    update() {
+        // Continuously update the orientation display during gameplay
+        if (this.orientationDisplay && this.orientationPermissionGranted) {
+            this.updateOrientationDisplay();
+        }
+    }
+
     capturePhoto() {
         const centerX = this.cameras.main.width / 2;
         const centerY = this.cameras.main.height / 2;
@@ -274,23 +323,23 @@ export default class GameScene extends Scene {
         const visibleSprites = this.sprites.filter(sprite => {
             const camera = this.cameras.main;
             const worldView = camera.worldView;
-            
+
             // Check if sprite is within current camera world viewport
             const spriteX = sprite.x;
             const spriteY = sprite.y;
             const spriteWidth = sprite.displayWidth;
             const spriteHeight = sprite.displayHeight;
-            
+
             // Check if sprite overlaps with camera's world view rectangle
-            return spriteX + spriteWidth/2 >= worldView.x && 
-                   spriteX - spriteWidth/2 <= worldView.x + worldView.width && 
-                   spriteY + spriteHeight/2 >= worldView.y && 
+            return spriteX + spriteWidth/2 >= worldView.x &&
+                   spriteX - spriteWidth/2 <= worldView.x + worldView.width &&
+                   spriteY + spriteHeight/2 >= worldView.y &&
                    spriteY - spriteHeight/2 <= worldView.y + worldView.height;
         });
 
         // Show capture feedback with count and current orientation
-        const captureText = visibleSprites.length > 0 
-            ? `Captured ${visibleSprites.length} angel(s) at ${Math.round(this.currentOrientation)}°!` 
+        const captureText = visibleSprites.length > 0
+            ? `Captured ${visibleSprites.length} angel(s) at ${Math.round(this.currentOrientation)}°!`
             : `No angels in frame (${Math.round(this.currentOrientation)}°)`;
 
         this.add.text(centerX, centerY - 50, captureText, {
@@ -311,6 +360,16 @@ export default class GameScene extends Scene {
         });
 
         console.log(`Photo captured with ${visibleSprites.length} sprites visible at ${this.currentOrientation}°`);
+    }
+
+    getOrientationText() {
+        return `Current: α${Math.round(this.currentAngles.alpha)}° β${Math.round(this.currentAngles.beta)}° γ${Math.round(this.currentAngles.gamma)}°\nChanged: H${Math.round(this.angleChanges.horizontal)}° V${Math.round(this.angleChanges.vertical)}°`;
+    }
+
+    updateOrientationDisplay() {
+        if (this.orientationDisplay) {
+            this.orientationDisplay.setText(this.getOrientationText());
+        }
     }
 
     destroy() {
